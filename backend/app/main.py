@@ -1,21 +1,38 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
-# Allow frontend to communicate with backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React app address
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+spotify = spotipy.Spotify(
+    client_credentials_manager=SpotifyClientCredentials(
+        client_id=os.getenv('SPOTIFY_CLIENT_ID'),
+        client_secret=os.getenv('SPOTIFY_CLIENT_SECRET')
+    )
 )
 
 @app.get("/")
 def read_root():
     return {"message": "PlaylistDNA API is running"}
 
-@app.get("/test")
-def test_endpoint():
-    return {"status": "success", "data": "Test endpoint working"}
+
+@app.get("/artist/{artist_id}")
+def get_artist(artist_id: str):
+    try:
+        result = spotify.artist(artist_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
