@@ -36,3 +36,11 @@ def get_artist(artist_id: str):
         return result
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+@app.get("/playlist/{playlist_id}")
+def get_playlist(playlist_id: str):
+    try:
+        result = spotify.playlist(playlist_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
